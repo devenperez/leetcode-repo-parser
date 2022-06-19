@@ -15,10 +15,8 @@ def rmdirAll(path):
     os.rmdir(path)
 
 def get_embed_from_url(url):
-    target = url.replace(" ", "%20")
-    target = url.replace(":", "%3A")
     target = url.replace("/", "%2F")
-    return "<script src=\"https://emgithub.com/embed.js?target=" + target + "&style=github&showBorder=on&showLineNumbers=on\"></script>"
+    return "<script src=\"https://emgithub.com/embed.js?target=https%3A%2F%2Fgithub.com%2Fdevenperez%2Fleetcode%2Fblob%2Fmain%2F" + target + "&style=github&showBorder=on&showLineNumbers=on\"></script>"
 
 filesToIgnore = [".git", "README.md"]
 
@@ -50,10 +48,11 @@ for problemFolder in os.listdir("leetcode"):
             continue #Notes can be ignored for this
         elif file == "README.md":
             readme = open(os.path.join(pfPath, file), "r")
-            print(readme.read())
+            print(readme.read().split("h3")[1][1:-2])
         else:
             codeFolder = problemFolder + "/" + file
+            embedCode = get_embed_from_url(codeFolder)
             
-    print(codeFolder)
+    print(embedCode)
     print("\n")
         
