@@ -9,7 +9,7 @@ class Problem:
         self.memoryPercentile = 0.0
 
         self.difficulty = ""
-        self.embedLink = ""
+        self.codeFolder = ""
         self.language = ""
 
     def __repr__(self) -> str:
