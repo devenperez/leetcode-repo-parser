@@ -30,6 +30,7 @@ problems = []
 easyProblemsSolved = 0
 mediumProblemsSolved = 0
 hardProblemsSolved = 0
+currentTime = int(time.time())
 
 if len(args) > 0 and (args[0] == "false" or args[0] == "False"):
     # If not recloning, check if it exists
@@ -45,6 +46,14 @@ else:
     # Clone repo from github
     print("Cloning new leetcode folder from github")
     git.Repo.clone_from('https://github.com/devenperez/leetcode', "leetcode")
+
+
+if os.path.exists("api-git"):
+        print("Deleting current api-git folder")
+        rmdirAll("api-git")
+
+git.Repo.clone_from("https://github.com/devenperez/api-git.git", "api-git")
+apiRepo = git.Repo("api-git")
 
 print("Starting gathering info from repo")
 numFolders = len(os.listdir("leetcode"))
@@ -87,6 +96,10 @@ for problemFolder in os.listdir("leetcode"):
     problems.append(prob)
 print("Finished gathering info from repo")
 
+print("Sorting problem list")
+problems.sort(reverse=True, key=lambda p : p.timePercentile + p.memoryPercentile)
+print("Finished sorting problem list")
+
 print("Creating CSV file")
 # Export all info to .csv file
 if os.path.exists("problems_solved.csv"):
@@ -100,8 +113,9 @@ csv.close()
 print("Finished CSV file")
 
 ## Writing JSON file
+print("Creating JSON file")
 jsonDictionary = {
-    "timeGathered": int(time.time()),
+    "timeGathered": currentTime,
     "solvedProblems": {
         "solvedTotals": {
             "all": easyProblemsSolved + mediumProblemsSolved + hardProblemsSolved,
@@ -134,9 +148,15 @@ for p in problems:
 jsonContents = json.dumps(jsonDictionary, indent=4)
 
 # Delete existing JSON file
-if os.path.exists("problems_solved.json"):
-    os.remove("problems_solved.json")
+if os.path.exists(os.path.join("api-git", "data", "problems_solved.json")):
+    os.remove(os.path.join("api-git", "data", "problems_solved.json"))
 
-jsonFile = open("problems_solved.json", "x")
+jsonFile = open(os.path.join("api-git", "data", "problems_solved.json"), "x")
 jsonFile.write(jsonContents)
 jsonFile.close()
+print("Finished creating JSON file")
+
+apiRepo.index.add([os.path.join("data", "problems_solved.json")])
+apiRepo.index.commit(f"Updated problem_solved.json (${currentTime})")
+apiOrigin = apiRepo.remote()
+apiOrigin.push()
