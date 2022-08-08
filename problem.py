@@ -16,4 +16,4 @@ class Problem:
         return f"{self.number}. {self.name} {self.language} ({self.difficulty}) {self.time} ({self.timePercentile}) {self.memory} ({self.memoryPercentile}) "
 
     def toCSV(self) -> str:
-        return f"{self.number},{self.name},{self.difficulty},{self.language},{self.time},{self.timePercentile}%,{self.memory},{self.memoryPercentile}%,{self.embedLink}"
+        return f"{self.number},{self.name},{self.difficulty},{self.language},{self.time},{self.timePercentile}%,{self.memory},{self.memoryPercentile}%,{self.codeFolder}"
