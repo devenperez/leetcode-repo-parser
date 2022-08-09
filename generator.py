@@ -157,6 +157,6 @@ jsonFile.close()
 print("Finished creating JSON file")
 
 apiRepo.index.add([os.path.join("data", "problems_solved.json")])
-apiRepo.index.commit(f"Updated problem_solved.json (${currentTime})")
+apiRepo.index.commit(f"Updated problem_solved.json ({currentTime})")
 apiOrigin = apiRepo.remote()
 apiOrigin.push()
