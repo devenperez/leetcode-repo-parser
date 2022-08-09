@@ -30,7 +30,7 @@ problems = []
 easyProblemsSolved = 0
 mediumProblemsSolved = 0
 hardProblemsSolved = 0
-currentTime = int(time.time())
+currentTime = int(time.time() * 1000)
 
 if len(args) > 0 and (args[0] == "false" or args[0] == "False"):
     # If not recloning, check if it exists
