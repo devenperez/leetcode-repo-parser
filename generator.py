@@ -16,12 +16,6 @@ def rmdirAll(path):
             os.chmod(fullpath, 0o777)
             os.remove(fullpath)
     os.rmdir(path)
-"""
-# Retrives website embed
-def get_embed_from_url(url):
-    target = url.replace("/", "%2F")
-    return f"<script src=\"https://emgithub.com/embed.js?target=https%3A%2F%2Fgithub.com%2Fdevenperez%2Fleetcode%2Fblob%2Fmain%2F{target}&style=github&showBorder=on&showLineNumbers=on\"></script>"
-"""
 
 ### Start ###
 args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
