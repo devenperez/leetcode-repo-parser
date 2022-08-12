@@ -17,8 +17,21 @@ def rmdirAll(path):
             os.remove(fullpath)
     os.rmdir(path)
 
+def strToBool(s):
+    if s.lower() == "true":
+        return True
+    elif s.lower() == "false":
+        return False
+    else:
+        print("ERROR: Invalid args")
+        exit()
+
 ### Start ###
-args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+argsUnparsed = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+args = {
+    "leetcode": True,   # Pull new leetcode from GitHub
+    "json": True,       # Upload generated JSON to GitHub (api-git)
+}
 filesToIgnore = [".git", "README.md"]
 problems = []
 easyProblemsSolved = 0
@@ -26,16 +39,37 @@ mediumProblemsSolved = 0
 hardProblemsSolved = 0
 currentTime = int(time.time() * 1000)
 
-if len(args) > 0 and (args[0] == "false" or args[0] == "False"):
-    # If not recloning, check if it exists
-    if not os.path.exists("leetcode"):
-        print("An error has occured: \"leetcode\" folder does not exist")
-        quit()
-else:
+# Parse arguments
+if len(argsUnparsed) > 0:
+    if argsUnparsed[0].__contains__("="):
+        # Manual argument assignment
+        for a in argsUnparsed:
+            keyValPair = a.split("=")
+            if keyValPair[0].lower() in args.keys():
+                args[keyValPair[0].lower()] = strToBool(keyValPair[1])
+            else:
+                print("ERROR: Invalid args")
+                exit()
+    else:
+        # Sequential argument assignment
+        if len(argsUnparsed) == len(args):
+            args["leetcode"] = strToBool(argsUnparsed[0])
+            args["json"] = strToBool(argsUnparsed[1])
+        else:
+            print("ERROR: Invalid args")
+            exit()
+
+# Pull leetcode from GitHub
+if args["leetcode"]:
     # Deletes existing leetcode folder
     if os.path.exists("leetcode"):
         print("Deleting current leetcode folder")
         rmdirAll("leetcode")
+else:
+    # If not recloning, check if it exists
+    if not os.path.exists("leetcode"):
+        print("An error has occured: \"leetcode\" folder does not exist")
+        quit()
 
     # Clone repo from github
     print("Cloning new leetcode folder from github")
