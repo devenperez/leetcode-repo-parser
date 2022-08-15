@@ -1,7 +1,6 @@
 import git
 import os
 import time
-import shutil
 import sys
 from problem import Problem
 import json
@@ -23,8 +22,7 @@ def strToBool(s):
     elif s.lower() == "false":
         return False
     else:
-        print("ERROR: Invalid args")
-        exit()
+        raise Exception("Invalid arguments (bool)")
 
 ### Start ###
 argsUnparsed = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
@@ -45,19 +43,20 @@ if len(argsUnparsed) > 0:
         # Manual argument assignment
         for a in argsUnparsed:
             keyValPair = a.split("=")
+            if len(keyValPair) != 2:
+                raise Exception("Invalid arguments (missing equal sign)")
+
             if keyValPair[0].lower() in args.keys():
                 args[keyValPair[0].lower()] = strToBool(keyValPair[1])
             else:
-                print("ERROR: Invalid args")
-                exit()
+                raise Exception("Invalid arguments (key)")
     else:
         # Sequential argument assignment
         if len(argsUnparsed) == len(args):
             args["leetcode"] = strToBool(argsUnparsed[0])
             args["json"] = strToBool(argsUnparsed[1])
         else:
-            print("ERROR: Invalid args")
-            exit()
+            raise Exception("Invalid arguments (num of args)")
 
 # Pull leetcode from GitHub
 if args["leetcode"]:
@@ -68,8 +67,7 @@ if args["leetcode"]:
 else:
     # If not recloning, check if it exists
     if not os.path.exists("leetcode"):
-        print("An error has occured: \"leetcode\" folder does not exist")
-        quit()
+        raise Exception("\"leetcode\" folder does not exist")
 
     # Clone repo from github
     print("Cloning new leetcode folder from github")
