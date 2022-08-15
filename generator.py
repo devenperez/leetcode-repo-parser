@@ -64,24 +64,20 @@ if len(argsUnparsed) > 0:
 if args["leetcode"]:
     # Deletes existing leetcode folder
     if os.path.exists(os.path.join("repos","leetcode")):
-        print("Deleting current leetcode folder")
-        rmdirAll(os.path.join("repos","leetcode"))
-
-    # Clone repo from github
-    print("Cloning new leetcode folder from github")
-    git.Repo.clone_from('https://github.com/devenperez/leetcode', os.path.join("repos", "leetcode"))
+        # Pulling from origin (leetcode)
+        print("Pulling new commits from leetcode on GitHub")
+        leetcodeRepo = git.Repo(os.path.join("repos","leetcode"))
+        leetcodeRepo.remotes.origin.pull()
+        print("Finished pulling new commits from leetcode on GitHub")
+    else:
+        # Clone repo from github
+        print("Cloning new leetcode folder from GitHub")
+        git.Repo.clone_from('https://github.com/devenperez/leetcode.git', os.path.join("repos", "leetcode"))
+        print("Finished cloning new leetcode folder from GitHub")
 else:
     # If not recloning, check if it exists
     if not os.path.exists(os.path.join("repos","leetcode")):
         raise Exception("\"leetcode\" folder does not exist")
-
-
-if os.path.exists(os.path.join("repos", "api-git")):
-        print("Deleting current api-git folder")
-        rmdirAll(os.path.join("repos", "api-git"))
-
-git.Repo.clone_from("https://github.com/devenperez/api-git.git", os.path.join("repos", "api-git"))
-apiRepo = git.Repo(os.path.join("repos", "api-git"))
 
 print("Starting gathering info from repo")
 numFolders = len(os.listdir(os.path.join("repos","leetcode")))
@@ -139,52 +135,64 @@ if args["csv"]:
             csv.write("\n")
     print("Finished CSV file")
 
-## Writing JSON file
-print("Creating JSON file")
-jsonDictionary = {
-    "timeGathered": currentTime,
-    "solvedProblems": {
-        "solvedTotals": {
-            "all": easyProblemsSolved + mediumProblemsSolved + hardProblemsSolved,
-            "easy": easyProblemsSolved,
-            "medium": mediumProblemsSolved,
-            "hard": hardProblemsSolved
-        },
-        "problems": []
-    }
-}
+if args["json"]:
+    # Pulling new api-git
+    if os.path.exists(os.path.join("repos", "api-git")):
+        print("Pulling new commits from api-git on GitHub")
+        apiRepo = git.Repo(os.path.join("repos", "api-git"))
+        apiRepo.remotes.origin.pull()
+        print("Finished pulling new commits from api-git on GitHub")
+    else:
+        print("Cloning new api-git folder from GitHub")
+        git.Repo.clone_from("https://github.com/devenperez/api-git.git", os.path.join("repos", "api-git"))
+        apiRepo = git.Repo(os.path.join("repos", "api-git"))
+        print("Finished cloning new api-git folder from GitHub")
 
-for p in problems:
-    individualProblemDict = {
-        "number": p.number,
-        "name": p.name,
-        "difficulty": p.difficulty,
-        "lang": p.language,
-        "location": p.codeFolder,
-        "scores": 
-        {
-            "time": p.time,
-            "timePercentile": p.timePercentile,
-            "memory": p.memory,
-            "memoryPercentile": p.memoryPercentile
-        }   
+    ## Writing JSON file
+    print("Creating JSON file")
+    jsonDictionary = {
+        "timeGathered": currentTime,
+        "solvedProblems": {
+            "solvedTotals": {
+                "all": easyProblemsSolved + mediumProblemsSolved + hardProblemsSolved,
+                "easy": easyProblemsSolved,
+                "medium": mediumProblemsSolved,
+                "hard": hardProblemsSolved
+            },
+            "problems": []
+        }
     }
 
-    jsonDictionary["solvedProblems"]["problems"].append(individualProblemDict)
+    for p in problems:
+        individualProblemDict = {
+            "number": p.number,
+            "name": p.name,
+            "difficulty": p.difficulty,
+            "lang": p.language,
+            "location": p.codeFolder,
+            "scores": 
+            {
+                "time": p.time,
+                "timePercentile": p.timePercentile,
+                "memory": p.memory,
+                "memoryPercentile": p.memoryPercentile
+            }   
+        }
 
-jsonContents = json.dumps(jsonDictionary, indent=4)
+        jsonDictionary["solvedProblems"]["problems"].append(individualProblemDict)
 
-# Delete existing JSON file
-if os.path.exists(os.path.join("repos", "api-git", "data", "problems_solved.json")):
-    os.remove(os.path.join("repos", "api-git", "data", "problems_solved.json"))
+    jsonContents = json.dumps(jsonDictionary, indent=4)
 
-with open(os.path.join("repos", "api-git", "data", "problems_solved.json"), "x") as jsonFile:
-    jsonFile.write(jsonContents)
-print("Finished creating JSON file")
+    # Delete existing JSON file
+    if os.path.exists(os.path.join("repos", "api-git", "data", "problems_solved.json")):
+        os.remove(os.path.join("repos", "api-git", "data", "problems_solved.json"))
 
-print("Uploading JSON file to GitHub")
-apiRepo.index.add([os.path.join("data", "problems_solved.json")])
-apiRepo.index.commit(f"Updated problem_solved.json ({currentTime})")
-apiOrigin = apiRepo.remote()
-apiOrigin.push()
-print("Finished uploading JSON file to GitHub")
+    with open(os.path.join("repos", "api-git", "data", "problems_solved.json"), "x") as jsonFile:
+        jsonFile.write(jsonContents)
+    print("Finished creating JSON file")
+
+    print("Uploading JSON file to GitHub")
+    apiRepo.index.add([os.path.join("data", "problems_solved.json")])
+    apiRepo.index.commit(f"Updated problem_solved.json ({currentTime})")
+    apiRepo.remotes.origin.push()
+    print("Finished uploading JSON file to GitHub")
