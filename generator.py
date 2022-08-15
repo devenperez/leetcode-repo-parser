@@ -63,31 +63,31 @@ if len(argsUnparsed) > 0:
 # Pull leetcode from GitHub
 if args["leetcode"]:
     # Deletes existing leetcode folder
-    if os.path.exists("leetcode"):
+    if os.path.exists(os.path.join("repos","leetcode")):
         print("Deleting current leetcode folder")
-        rmdirAll("leetcode")
-else:
-    # If not recloning, check if it exists
-    if not os.path.exists("leetcode"):
-        raise Exception("\"leetcode\" folder does not exist")
+        rmdirAll(os.path.join("repos","leetcode"))
 
     # Clone repo from github
     print("Cloning new leetcode folder from github")
-    git.Repo.clone_from('https://github.com/devenperez/leetcode', "leetcode")
+    git.Repo.clone_from('https://github.com/devenperez/leetcode', os.path.join("repos", "leetcode"))
+else:
+    # If not recloning, check if it exists
+    if not os.path.exists(os.path.join("repos","leetcode")):
+        raise Exception("\"leetcode\" folder does not exist")
 
 
-if os.path.exists("api-git"):
+if os.path.exists(os.path.join("repos", "api-git")):
         print("Deleting current api-git folder")
-        rmdirAll("api-git")
+        rmdirAll(os.path.join("repos", "api-git"))
 
-git.Repo.clone_from("https://github.com/devenperez/api-git.git", "api-git")
-apiRepo = git.Repo("api-git")
+git.Repo.clone_from("https://github.com/devenperez/api-git.git", os.path.join("repos", "api-git"))
+apiRepo = git.Repo(os.path.join("repos", "api-git"))
 
 print("Starting gathering info from repo")
-numFolders = len(os.listdir("leetcode"))
+numFolders = len(os.listdir(os.path.join("repos","leetcode")))
 counter = 0
 # Gather all necessary info from repo
-for problemFolder in os.listdir("leetcode"):
+for problemFolder in os.listdir(os.path.join("repos","leetcode")):
     counter += 1
     if problemFolder in filesToIgnore: continue #Ignores non-problem folders
 
@@ -98,7 +98,7 @@ for problemFolder in os.listdir("leetcode"):
 
     
     # Gather info from folder
-    pfPath = os.path.join("leetcode", problemFolder)
+    pfPath = os.path.join("repos", "leetcode", problemFolder)
     for file in os.listdir(pfPath):
         if file == "NOTES.md":
             pass
@@ -175,10 +175,10 @@ for p in problems:
 jsonContents = json.dumps(jsonDictionary, indent=4)
 
 # Delete existing JSON file
-if os.path.exists(os.path.join("api-git", "data", "problems_solved.json")):
-    os.remove(os.path.join("api-git", "data", "problems_solved.json"))
+if os.path.exists(os.path.join("repos", "api-git", "data", "problems_solved.json")):
+    os.remove(os.path.join("repos", "api-git", "data", "problems_solved.json"))
 
-with open(os.path.join("api-git", "data", "problems_solved.json"), "x") as jsonFile:
+with open(os.path.join("repos", "api-git", "data", "problems_solved.json"), "x") as jsonFile:
     jsonFile.write(jsonContents)
 print("Finished creating JSON file")
 
