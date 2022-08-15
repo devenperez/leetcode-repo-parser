@@ -28,7 +28,8 @@ def strToBool(s):
 argsUnparsed = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 args = {
     "leetcode": True,   # Pull new leetcode from GitHub
-    "json": True,       # Upload generated JSON to GitHub (api-git)
+    "csv": False,       # Create CSV file of all gathered information
+    "json": True        # Upload generated JSON to GitHub (api-git)
 }
 filesToIgnore = [".git", "README.md"]
 problems = []
@@ -54,7 +55,8 @@ if len(argsUnparsed) > 0:
         # Sequential argument assignment
         if len(argsUnparsed) == len(args):
             args["leetcode"] = strToBool(argsUnparsed[0])
-            args["json"] = strToBool(argsUnparsed[1])
+            args["csv"] = strToBool(argsUnparsed[1])
+            args["json"] = strToBool(argsUnparsed[2])
         else:
             raise Exception("Invalid arguments (num of args)")
 
@@ -124,16 +126,18 @@ print("Sorting problem list")
 problems.sort(reverse=True, key=lambda p : p.timePercentile + p.memoryPercentile)
 print("Finished sorting problem list")
 
-print("Creating CSV file")
-# Export all info to .csv file
-if os.path.exists("problems_solved.csv"):
-    os.remove("problems_solved.csv")
+# Create CSV file
+if args["csv"]:
+    print("Creating CSV file")
+    # Export all info to .csv file
+    if os.path.exists("problems_solved.csv"):
+        os.remove("problems_solved.csv")
 
-with open("problems_solved.csv", "x") as csv:
-    for problem in problems:
-        csv.write(problem.toCSV())
-        csv.write("\n")
-print("Finished CSV file")
+    with open("problems_solved.csv", "x") as csv:
+        for problem in problems:
+            csv.write(problem.toCSV())
+            csv.write("\n")
+    print("Finished CSV file")
 
 ## Writing JSON file
 print("Creating JSON file")
