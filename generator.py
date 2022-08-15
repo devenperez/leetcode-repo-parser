@@ -101,20 +101,18 @@ for problemFolder in os.listdir("leetcode"):
         if file == "NOTES.md":
             pass
         elif file.startswith("STATS"):
-            stats = open(os.path.join(pfPath, file), "r")
-            wordBreaks = stats.read().split(" ")
-            stats.close()
+            with open(os.path.join(pfPath, file), "r") as stats:
+                wordBreaks = stats.read().split(" ")
             prob.time = float(wordBreaks[1])
             prob.timePercentile = float(wordBreaks[3][1:-3])
             prob.memory = float(wordBreaks[5])
             prob.memoryPercentile = float(wordBreaks[7][1:-2])
         elif file == "README.md":
-            readme = open(os.path.join(pfPath, file), "r")
-            prob.difficulty = readme.read().split("h3")[1][1:-2]
-            easyProblemsSolved += 1 if prob.difficulty == "Easy" else 0
-            mediumProblemsSolved += 1 if prob.difficulty == "Medium" else 0
-            hardProblemsSolved += 1 if prob.difficulty == "Hard" else 0
-            readme.close()
+            with open(os.path.join(pfPath, file), "r") as readme:
+                prob.difficulty = readme.read().split("h3")[1][1:-2]
+                easyProblemsSolved += 1 if prob.difficulty == "Easy" else 0
+                mediumProblemsSolved += 1 if prob.difficulty == "Medium" else 0
+                hardProblemsSolved += 1 if prob.difficulty == "Hard" else 0
         else:
             prob.codeFolder = problemFolder + "/" + file
             prob.language = file.split(".")[-1]
@@ -131,11 +129,10 @@ print("Creating CSV file")
 if os.path.exists("problems_solved.csv"):
     os.remove("problems_solved.csv")
 
-csv = open("problems_solved.csv", "x")
-for problem in problems:
-    csv.write(problem.toCSV())
-    csv.write("\n")
-csv.close()
+with open("problems_solved.csv", "x") as csv:
+    for problem in problems:
+        csv.write(problem.toCSV())
+        csv.write("\n")
 print("Finished CSV file")
 
 ## Writing JSON file
@@ -177,9 +174,8 @@ jsonContents = json.dumps(jsonDictionary, indent=4)
 if os.path.exists(os.path.join("api-git", "data", "problems_solved.json")):
     os.remove(os.path.join("api-git", "data", "problems_solved.json"))
 
-jsonFile = open(os.path.join("api-git", "data", "problems_solved.json"), "x")
-jsonFile.write(jsonContents)
-jsonFile.close()
+with open(os.path.join("api-git", "data", "problems_solved.json"), "x") as jsonFile:
+    jsonFile.write(jsonContents)
 print("Finished creating JSON file")
 
 print("Uploading JSON file to GitHub")
