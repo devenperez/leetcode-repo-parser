@@ -78,6 +78,7 @@ else:
     # If not recloning, check if it exists
     if not os.path.exists(os.path.join("repos","leetcode")):
         raise Exception("\"leetcode\" folder does not exist")
+    leetcodeRepo = git.Repo(os.path.join("repos","leetcode"))
 
 print("Starting gathering info from repo")
 numFolders = len(os.listdir(os.path.join("repos","leetcode")))
@@ -101,10 +102,8 @@ for problemFolder in os.listdir(os.path.join("repos","leetcode")):
         elif file.startswith("STATS"):
             with open(os.path.join(pfPath, file), "r") as stats:
                 wordBreaks = stats.read().split(" ")
-            prob.time = float(wordBreaks[1])
-            prob.timePercentile = float(wordBreaks[3][1:-3])
-            prob.memory = float(wordBreaks[5])
-            prob.memoryPercentile = float(wordBreaks[7][1:-2])
+            stats = prob.getOrAddStats(file.split("_")[1].split(".")[0])
+            stats.addStats(float(wordBreaks[1]), float(wordBreaks[3][1:-3]), float(wordBreaks[5]), float(wordBreaks[7][1:-2]))
         elif file == "README.md":
             with open(os.path.join(pfPath, file), "r") as readme:
                 prob.difficulty = readme.read().split("h3")[1][1:-2]
@@ -113,13 +112,13 @@ for problemFolder in os.listdir(os.path.join("repos","leetcode")):
                 hardProblemsSolved += 1 if prob.difficulty == "Hard" else 0
         else:
             prob.codeFolder = problemFolder + "/" + file
-            prob.language = file.split(".")[-1]
+            prob.validate(file.split(".")[-1])
     
     problems.append(prob)
 print("Finished gathering info from repo")
 
 print("Sorting problem list")
-problems.sort(reverse=True, key=lambda p : p.timePercentile + p.memoryPercentile)
+problems.sort(reverse=True, key=lambda p : p.stats[0].timePercentile + p.stats[0].memoryPercentile)
 print("Finished sorting problem list")
 
 # Create CSV file
@@ -168,16 +167,19 @@ if args["json"]:
             "number": p.number,
             "name": p.name,
             "difficulty": p.difficulty,
-            "lang": p.language,
             "location": p.codeFolder,
-            "scores": 
-            {
-                "time": p.time,
-                "timePercentile": p.timePercentile,
-                "memory": p.memory,
-                "memoryPercentile": p.memoryPercentile
-            }   
+            "languagesSolved": []
         }
+        for pstats in p.stats:
+            langSolvedSection = {
+                "lang": pstats.language,
+                "time": pstats.time,
+                "timePercentile": pstats.timePercentile,
+                "memory": pstats.memory,
+                "memoryPercentile": pstats.memoryPercentile
+            }
+            individualProblemDict["languagesSolved"].append(langSolvedSection)
+        individualProblemDict["languagesSolved"].sort(reverse=True, key=lambda p : p["timePercentile"] + p["memoryPercentile"])
 
         jsonDictionary["solvedProblems"]["problems"].append(individualProblemDict)
 
