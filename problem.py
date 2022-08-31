@@ -14,6 +14,18 @@ class Problem:
     def toCSV(self) -> str:
         return f"{self.number},{self.name},{self.difficulty},{self.language},{self.time},{self.timePercentile}%,{self.memory},{self.memoryPercentile}%,{self.codeFolder}"
 
+    def getDebugRow(self) -> str:
+        languages = ""
+        for lang in self.stats:
+            validationCharacter = ""
+            validationCharacter += "*" if not lang.codeAdded else ""
+            validationCharacter += "'" if lang.timePercentile == 0.0 else ""
+            
+            languages += f"{lang.language}{validationCharacter}\t"
+        #   26 has no README.md
+        hasReadMe = "O" if self.difficulty != "" else "-"
+        return f"{self.number}\t{hasReadMe}\t{languages}"
+
     def getOrAddStats(self, lang):
         match = [ps for ps in self.stats if ps.language == lang]
         if len(match) == 0:

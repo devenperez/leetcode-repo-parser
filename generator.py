@@ -29,7 +29,8 @@ argsUnparsed = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
 args = {
     "leetcode": True,   # Pull new leetcode from GitHub
     "csv": False,       # Create CSV file of all gathered information
-    "json": True        # Upload generated JSON to GitHub (api-git)
+    "json": True,       # Upload generated JSON to GitHub (api-git)
+    "debug": False      # Print out validation table 
 }
 filesToIgnore = [".git", "README.md"]
 problems = []
@@ -57,6 +58,7 @@ if len(argsUnparsed) > 0:
             args["leetcode"] = strToBool(argsUnparsed[0])
             args["csv"] = strToBool(argsUnparsed[1])
             args["json"] = strToBool(argsUnparsed[2])
+            args["debug"] = strToBool(argsUnparsed[3])
         else:
             raise Exception("Invalid arguments (num of args)")
 
@@ -120,6 +122,14 @@ print("Finished gathering info from repo")
 print("Sorting problem list")
 problems.sort(reverse=True, key=lambda p : p.stats[0].timePercentile + p.stats[0].memoryPercentile)
 print("Finished sorting problem list")
+
+if args["debug"]:
+    print("-" * 45)
+    print("* = Missing code, ' = Missing stats")
+    print("-" * 45)
+    for p in problems:
+        print(p.getDebugRow())
+    print("-" * 45)
 
 # Create CSV file
 if args["csv"]:
