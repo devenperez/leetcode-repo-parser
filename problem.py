@@ -9,7 +9,7 @@ class Problem:
 
 
     def __repr__(self) -> str:
-        return f"{self.number}. {self.name} {self.language} ({self.difficulty}) {self.time} ({self.timePercentile}) {self.memory} ({self.memoryPercentile}) "
+        return f"{self.number}. {self.name} ({self.difficulty})\n{self.stats}\n"
 
     def toCSV(self) -> str:
         return f"{self.number},{self.name},{self.difficulty},{self.language},{self.time},{self.timePercentile}%,{self.memory},{self.memoryPercentile}%,{self.codeFolder}"
@@ -47,6 +47,9 @@ class ProbStats:
         self.language = language
         self.codeAdded = False
     
+    def __repr__(self) -> str:
+        return f"\t{self.language}\t|{self.time} ({self.timePercentile})\t|{self.memory} ({self.memoryPercentile})\t|{self.codeAdded}\n"
+
     def addStats(self, time = -1, timePercentile = -1, memory = -1, memoryPercentile = -1):
         self.time = time if time > 0 else self.time
         self.timePercentile = timePercentile if timePercentile > 0 else self.timePercentile
