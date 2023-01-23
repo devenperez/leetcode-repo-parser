@@ -263,8 +263,8 @@ if not args["auto"]:
 .__                 __                   .___                 
                               
 |  |   ____   _____/  |_  ____  ____   __| _/____   ___________ _______  ______ ___________ 
-|  | _/ __ \_/ __ \   __\/ ___\/  _ \ / __ |/ __ \  \____ \__  \\_  __ \/  ___// __ \_  __ \\
-|  |_\  ___/\  ___/|  | \  \__(  <_> ) /_/ \  ___/  |  |_> > __ \|  | \/\___ \\  ___/|  | \/
+|  | _/ __ \_/ __ \   __\/ ___\/  _ \ / __ |/ __ \  \____ \__  \\\\_  __ \/  ___// __ \_  __ \\
+|  |_\  ___/\  ___/|  | \  \__(  <_> ) /_/ \  ___/  |  |_> > __ \|  | \/\___ \\\\  ___/|  | \/
 |____/\___  >\___  >__|  \___  >____/\____ |\___  > |   __(____  /__|  /____  >\___  >__|   
           \/     \/          \/           \/    \/  |__|       \/           \/     \/       
     """)
@@ -275,6 +275,7 @@ if not args["auto"]:
         "Would you like to pull the newest version of the repo from GitHub?"))
     GatherInfo()
     SortProblems()
+    print(f"Problems Solved: {easyProblemsSolved + mediumProblemsSolved + hardProblemsSolved} (E: {easyProblemsSolved}, M: {mediumProblemsSolved}, H:{hardProblemsSolved})")
     print(problems)
     PrintDebug(YesOrNoQuestion(
         "Would you like to print the debug table?"))
