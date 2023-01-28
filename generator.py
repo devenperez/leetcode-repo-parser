@@ -32,12 +32,15 @@ def YesOrNoQuestion(question):
     response = ""
     yesResponses = ["Y", "y", "yes", "Yes", "YES"]
     noResponses = ["N", "n", "no", "No", "NO"]
-    validResponses = yesResponses + noResponses
+    quitResponses = ["Q", "q", "quit", "Quit", "QUIT"]
+    validResponses = yesResponses + noResponses + quitResponses
     while not response in validResponses:
         response = input(f"{question} (Y/N) ")
 
     if response in yesResponses:
         return True
+    elif response in quitResponses:
+        exit()
     return False
 
 ### Start ###
