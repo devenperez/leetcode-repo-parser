@@ -6,9 +6,10 @@ from problem import Problem
 import json
 
 # Recursive delete folder
-
-
 def rmdirAll(path):
+    if not os.path.exists(path):
+        return
+
     for file in os.listdir(path):
         fullpath = os.path.join(path, file)
         if os.path.isdir(fullpath):
@@ -49,7 +50,7 @@ args = {
     "auto": False,      # Automatically executes without any further input
     "leetcode": True,   # Pull new leetcode from GitHub
     "csv": False,       # Create CSV file of all gathered information
-    "json": True,       # Upload generated JSON to GitHub (api-git)
+    "json": True,       # Create and upload generated JSON to GitHub (api-git)
     "debug": False      # Print out validation table
 }
 filesToIgnore = [".git", "README.md"]
@@ -109,10 +110,13 @@ def GatherInfo():
                 pass
             elif file.startswith("STATS"):
                 with open(os.path.join(pfPath, file), "r") as stats:
-                    wordBreaks = stats.read().split(" ")
+                    statsLine = stats.read().replace("0B", "0 B")
+                    wordBreaks = statsLine.split(" ")
                 stats = prob.getOrAddStats(file.split("_")[1].split(".")[0])
-                stats.addStats(float(wordBreaks[1]), float(
-                    wordBreaks[3][1:-3]), float(wordBreaks[5]), float(wordBreaks[7][1:-2]))
+                stats.addStats(float(wordBreaks[1]), 
+                               float(wordBreaks[3][1:-3]), 
+                               float(wordBreaks[5]), 
+                               float(wordBreaks[7][1:-2]))
             elif file == "README.md":
                 with open(os.path.join(pfPath, file), "r") as readme:
                     prob.difficulty = readme.read().split("h3")[1][1:-2]
@@ -178,18 +182,45 @@ def CreateJSON(shouldCreate):
 
     # Writing JSON file
     print("Creating JSON file")
-    jsonDictionary = {
+    rootDictionary = {
+        "version": 3,
         "timeGathered": currentTime,
-        "solvedProblems": {
-            "solvedTotals": {
-                "all": easyProblemsSolved + mediumProblemsSolved + hardProblemsSolved,
-                "easy": easyProblemsSolved,
-                "medium": mediumProblemsSolved,
-                "hard": hardProblemsSolved
+        "solvedTotals": {
+            "all": easyProblemsSolved + mediumProblemsSolved + hardProblemsSolved,
+            "easy": easyProblemsSolved,
+            "medium": mediumProblemsSolved,
+            "hard": hardProblemsSolved
+        },
+        "languages": [
+            {
+                "lang": "Python",
+                "extension": "py",
+                "endpoint": "/lang/py"
             },
+            {
+                "lang": "C",
+                "extension": "c",
+                "endpoint": "/lang/c"
+            },
+            {
+                "lang": "SQL",
+                "extension": "sql",
+                "endpoint": "/lang/sql"
+            },
+        ]
+    }
+
+    jsonDictionaries = {}
+    jsonContents = {}
+
+    for langSet in rootDictionary["languages"]:
+        lang = langSet["extension"]
+        jsonDictionaries[lang] = {
+            "version": 3,
+            "timeGathered": currentTime,
+            "language": lang,
             "problems": []
         }
-    }
 
     for p in problems:
         individualProblemDict = {
@@ -197,33 +228,41 @@ def CreateJSON(shouldCreate):
             "name": p.name,
             "difficulty": p.difficulty,
             "location": p.codeFolder,
-            "languagesSolved": []
+            "lang": "",
+            "time": 0,
+            "timePercentile": 0,
+            "memory": 0,
+            "memoryPercentile": 0
         }
         for pstats in p.stats:
-            langSolvedSection = {
-                "lang": pstats.language,
-                "time": pstats.time,
-                "timePercentile": pstats.timePercentile,
-                "memory": pstats.memory,
-                "memoryPercentile": pstats.memoryPercentile
-            }
-            individualProblemDict["languagesSolved"].append(langSolvedSection)
-        individualProblemDict["languagesSolved"].sort(
-            reverse=True, key=lambda p: p["timePercentile"] + p["memoryPercentile"])
+            if pstats.language not in ["py", "c", "sql"]:
+                continue
 
-        jsonDictionary["solvedProblems"]["problems"].append(
-            individualProblemDict)
+            individualProblemDict["lang"] = pstats.language
+            individualProblemDict["time"] = pstats.time
+            individualProblemDict["timePercentile"] = pstats.timePercentile
+            individualProblemDict["memory"] = pstats.memory
+            individualProblemDict["memoryPercentile"] = pstats.memoryPercentile
+            jsonDictionaries[pstats.language]["problems"].append(individualProblemDict)
+            jsonContents[pstats.language] = json.dumps(jsonDictionaries[pstats.language], indent=4)
 
-    jsonContents = json.dumps(jsonDictionary, indent=4)
+    # Delete existing contents
+    rmdirAll(os.path.join("repos", "api-git", "leetcode"))
+    os.mkdir(os.path.join("repos", "api-git", "leetcode"))
+    os.mkdir(os.path.join("repos", "api-git", "leetcode", "lang"))
 
-    # Delete existing JSON file
-    if os.path.exists(os.path.join("repos", "api-git", "data", "problems_solved.json")):
-        os.remove(os.path.join("repos", "api-git",
-                  "data", "problems_solved.json"))
+    # Root JSON
+    with open(os.path.join("repos", "api-git", "leetcode", "index"), "x") as jsonFile:
+        jsonFile.write(json.dumps(rootDictionary, indent=4))
+    print(f"Finished creating root JSON file")
 
-    with open(os.path.join("repos", "api-git", "data", "problems_solved.json"), "x") as jsonFile:
-        jsonFile.write(jsonContents)
-    print("Finished creating JSON file")
+    # Language JSONs
+    for langSet in rootDictionary["languages"]:
+        lang = langSet["extension"]
+
+        with open(os.path.join("repos", "api-git", "leetcode", "lang", lang), "x") as jsonFile:
+            jsonFile.write(jsonContents[lang])
+        print(f"Finished creating {langSet['lang']} JSON file")
 
 def UploadJSON(shouldUpload):
     if not shouldUpload:
@@ -231,8 +270,11 @@ def UploadJSON(shouldUpload):
 
     print("Uploading JSON file to GitHub")
     apiRepo = git.Repo(os.path.join("repos", "api-git"))
-    apiRepo.index.add([os.path.join("data", "problems_solved.json")])
-    apiRepo.index.commit(f"Updated problem_solved.json ({currentTime})")
+    apiRepo.index.add([os.path.join("leetcode", "index"),
+                       os.path.join("leetcode", "lang", "py"),
+                       os.path.join("leetcode", "lang", "c"),
+                       os.path.join("leetcode", "lang", "sql")])
+    apiRepo.index.commit(f"Updated leetcode directory ({currentTime})")
     apiRepo.remotes.origin.push()
     print("Finished uploading JSON file to GitHub")
 
